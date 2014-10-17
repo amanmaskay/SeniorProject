@@ -36,7 +36,7 @@ int main ()
 	TCCR1A |= _BV(COM1A1) | _BV(WGM11) ;
 	TCCR1A &= ~_BV(WGM10) ;
 	TCCR1B |= _BV(CS10) | _BV(WGM12) | _BV(WGM13);// | _BV(WGM13);
-	int top = 0x3FF;
+	int top = 0x3F;
 	ICR1 = top;
 	//TCCR1B &= ~(_BV(WGM11) | _BV(WGM10) );
 	//TCCR1A |= _BV(COM2A1) | _BV(WGM10);
@@ -79,38 +79,38 @@ int main ()
 	int OC = top*DC/100;	
 	float V_ref = 5;
 	
-	int OCR_max = 0.97*top;
+	int OCR_max = 0.90*top;
 	int OCR_min = 0.04*top;
 	OCR1A = OC;
-	_delay_ms(1000);
+	_delay_ms(100);
 	while(1)
 	{
-		float kp = 3;
-		float ki = 0.5;
+		float kp = 4;
+		float ki = 10;
 		float del_ocp=0;
 		float del_oci=0;
 		float Vbat_th = 1.9;
 		float err=0;
 		float int_err=0;
-		int del = 10;
+		int del = 1;
 		
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
 		float Vout_Scaled = Vout_volts/0.283;
 
 		uint16_t Vbat_ADC = adc_read(ADC_PIN1);
-		float Vbat_volts = Vbat_ADC*1.8/0x3FF;
+		float Vbat_volts = Vbat_ADC*1.82/0x3FF;
 		float Vbat_Scaled = Vbat_volts*2.1;
 		
 		err = V_ref-Vout_Scaled;
 		int_err += err*del/1000.0;
 
 		if (Vbat_Scaled<Vbat_th){
-			//OCR1A = 0.0;
-			//SMCR &= ~(_BV(SM2)|_BV(SM0));
-			//SMCR |= _BV(SM1);
-			//Vbat_th = 2.2;
-			//break;
+			OCR1A = 0.0;
+			SMCR &= ~(_BV(SM2)|_BV(SM0));
+			SMCR |= _BV(SM1);
+			//Vbat_th = 2.25;
+			break;
 		}
 		
 		
