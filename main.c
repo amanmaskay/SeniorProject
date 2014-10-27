@@ -75,47 +75,56 @@ int main ()
  
 		_delay_ms(10);
 	}*/
-	float DC = 62;
+	float DC = 0;
 	int OC = top*DC/100;	
 	float V_ref = 5;
 	
 	int OCR_max = 0.90*top;
 	int OCR_min = 0.04*top;
 	OCR1A = OC;
-	_delay_ms(100);
+	_delay_ms(1000);
 	while(1)
 	{
-		float kp = 4;
-		float ki = 10;
+		float kp = 0.57;
+		float ki = 0.5;
+		float kd = .9;
 		float del_ocp=0;
 		float del_oci=0;
-		float Vbat_th = 1.9;
+		float del_ocd=0;
+		float Vbat_th = 1.92;
+		
 		float err=0;
 		float int_err=0;
+		float der_err=0;
+		float temp = 0;
 		int del = 1;
-		
+		float v_dvd1 = 0.283;
+		float v_dvd2 = 0.5;
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
-		float Vout_Scaled = Vout_volts/0.283;
+		float Vout_Scaled = Vout_volts/v_dvd1;
 
 		uint16_t Vbat_ADC = adc_read(ADC_PIN1);
-		float Vbat_volts = Vbat_ADC*1.82/0x3FF;
-		float Vbat_Scaled = Vbat_volts*2.1;
+		float Vbat_volts = Vbat_ADC*1.8/0x3FF;
+		float Vbat_Scaled = Vbat_volts/v_dvd2;
 		
+		temp = err;
 		err = V_ref-Vout_Scaled;
+		der_err = (err-temp)/(del/1000);
 		int_err += err*del/1000.0;
 
 		if (Vbat_Scaled<Vbat_th){
-			OCR1A = 0.0;
+			//OCR1A = 0.0;
 			SMCR &= ~(_BV(SM2)|_BV(SM0));
 			SMCR |= _BV(SM1);
 			//Vbat_th = 2.25;
-			break;
+			//break;
 		}
 		
 		
 		del_ocp = err*kp;
 		del_oci = int_err*ki;
+		del_ocd = der_err*kd;
 		OC+=(del_ocp+del_oci);	
 	
 		
