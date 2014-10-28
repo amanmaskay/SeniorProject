@@ -91,7 +91,7 @@ int main ()
 		float del_ocp=0;
 		float del_oci=0;
 		float del_ocd=0;
-		float Vbat_th = 1.92;
+		float Vbat_th = 1.95;
 		
 		float err=0;
 		float int_err=0;
@@ -99,7 +99,7 @@ int main ()
 		float temp = 0;
 		int del = 5;	
 		float v_dvd1 = 0.284;
-		float v_dvd2 = 0.5;
+		float v_dvd2 = 0.50;
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
 		float Vout_Scaled = Vout_volts/v_dvd1;
@@ -114,11 +114,11 @@ int main ()
 		int_err += err*del/1000.0;
 
 		if (Vbat_Scaled<Vbat_th){
-			//OCR1A = 0.0;
+			OCR1A = 0.0;
 			SMCR &= ~(_BV(SM2)|_BV(SM0));
 			SMCR |= _BV(SM1);
 			//Vbat_th = 2.25;
-			//break;
+			break;
 		}
 		
 		
