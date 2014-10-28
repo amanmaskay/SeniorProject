@@ -85,9 +85,9 @@ int main ()
 	_delay_ms(1000);
 	while(1)
 	{
-		float kp = 0.57;
-		float ki = 0.5;
-		float kd = .9;
+		float kp = 2.8;//0.85;
+		float ki = 10;//0.5;
+		float kd = 8;//.9;
 		float del_ocp=0;
 		float del_oci=0;
 		float del_ocd=0;
@@ -97,8 +97,8 @@ int main ()
 		float int_err=0;
 		float der_err=0;
 		float temp = 0;
-		int del = 1;
-		float v_dvd1 = 0.283;
+		int del = 5;	
+		float v_dvd1 = 0.284;
 		float v_dvd2 = 0.5;
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
