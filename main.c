@@ -23,6 +23,7 @@ int main ()
  	/* Enable the ADC */
 	ADCSRA |= _BV(ADEN);
 	/**
+	 *
 	 * There are quite a number of PWM modes available but for the
 	 * sake of simplicity we'll just use the 8-bit Fast PWM mode.
 	 * This is done by setting the WGM10 and WGM12 bits.  We 
