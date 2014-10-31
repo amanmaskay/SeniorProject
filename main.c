@@ -76,31 +76,35 @@ int main ()
  
 		_delay_ms(10);
 	}*/
-	float DC = 0;
+	float DC = 5;
 	int OC = top*DC/100;	
 	float V_ref = 5;
 	
 	int OCR_max = 0.90*top;
 	int OCR_min = 0.04*top;
 	OCR1A = OC;
-	_delay_ms(1000);
+	_delay_ms(00);
+	
+	float kp = 0.9;//2.8;//0.85;
+	float ki = 10;//10;//0.5;
+	float kd = 0.001;//8;//.9;
+
+	float err=3;
+	float int_err=0;
+	float der_err=0;
+
+	float del_ocp=0.0;
+	float del_oci=0.0;
+	float del_ocd=0.0;
+	float Vbat_th = 1.95;
+	
+	
+	float temp = 0;
+	int del = 1;	
+	float v_dvd1 = 265.0/950.0;
+	float v_dvd2 = 1.0/2.0;
 	while(1)
-	{
-		float kp = 2.8;//0.85;
-		float ki = 10;//0.5;
-		float kd = 8;//.9;
-		float del_ocp=0;
-		float del_oci=0;
-		float del_ocd=0;
-		float Vbat_th = 1.95;
-		
-		float err=0;
-		float int_err=0;
-		float der_err=0;
-		float temp = 0;
-		int del = 5;	
-		float v_dvd1 = 0.284;
-		float v_dvd2 = 0.50;
+	{		
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
 		float Vout_Scaled = Vout_volts/v_dvd1;
@@ -111,7 +115,7 @@ int main ()
 		
 		temp = err;
 		err = V_ref-Vout_Scaled;
-		der_err = (err-temp)/(del/1000);
+		der_err = (err-temp)*1000.0/(del);
 		int_err += err*del/1000.0;
 
 		if (Vbat_Scaled<Vbat_th){
@@ -126,7 +130,7 @@ int main ()
 		del_ocp = err*kp;
 		del_oci = int_err*ki;
 		del_ocd = der_err*kd;
-		OC+=(del_ocp+del_oci);	
+		OC+=(del_ocp+del_oci+del_ocd);	
 	
 		
 		if (OC <OCR_min){
