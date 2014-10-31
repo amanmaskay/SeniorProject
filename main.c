@@ -76,18 +76,18 @@ int main ()
  
 		_delay_ms(10);
 	}*/
-	float DC = 5;
+	float DC = 0;
 	int OC = top*DC/100;	
 	float V_ref = 5;
 	
 	int OCR_max = 0.90*top;
 	int OCR_min = 0.04*top;
 	OCR1A = OC;
-	_delay_ms(00);
+	_delay_ms(50);
 	
-	float kp = 0.9;//2.8;//0.85;
-	float ki = 10;//10;//0.5;
-	float kd = 0.001;//8;//.9;
+	float kp = 0.8;//2.8;//0.85;
+	float ki = 8;//10;//0.5;
+	float kd = 0.003;//8;//.9;
 
 	float err=3;
 	float int_err=0;
@@ -96,13 +96,13 @@ int main ()
 	float del_ocp=0.0;
 	float del_oci=0.0;
 	float del_ocd=0.0;
-	float Vbat_th = 1.95;
+	float Vbat_th = 1.98;
 	
 	
 	float temp = 0;
 	int del = 1;	
 	float v_dvd1 = 265.0/950.0;
-	float v_dvd2 = 1.0/2.0;
+	float v_dvd2 = 0.503;
 	while(1)
 	{		
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
