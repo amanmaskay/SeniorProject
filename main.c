@@ -78,54 +78,64 @@ int main ()
 	}*/
 	float DC = 0;
 	int OC = top*DC/100;	
-	float V_ref = 5;
+	float V_ref = 4.92;
 	
 	int OCR_max = 0.90*top;
 	int OCR_min = 0.04*top;
 	OCR1A = OC;
 	_delay_ms(50);
 	
-	float kp = 0.8;//2.8;//0.85;
-	float ki = 8;//10;//0.5;
-	float kd = 0.003;//8;//.9;
+	float kp = 0.7;//2.6;//0.8;//2.8;//0.85;
+	float ki = 8;//300.0;//8;//10;//0.5;
+	float kd = 0.0008;//0.00003;//0.003;//8;//.9;
 
-	float err=3;
+	float err=5;
 	float int_err=0;
 	float der_err=0;
 
 	float del_ocp=0.0;
 	float del_oci=0.0;
 	float del_ocd=0.0;
-	float Vbat_th = 1.98;
+	float Vbat_th = 0.0;
 	
 	
 	float temp = 0;
-	int del = 1;	
-	float v_dvd1 = 265.0/950.0;
-	float v_dvd2 = 0.503;
+	float del = 1;	
+	float v_dvd1 = 270/950.0;
+	float v_dvd2 = 0.511;
 	while(1)
-	{		
+	{	
+
+	uint16_t Vbat_ADC;
+retry:
+		Vbat_ADC = adc_read(ADC_PIN1);
+		float Vbat_volts = Vbat_ADC*1.8/0x3FF;
+		float Vbat_Scaled = Vbat_volts/v_dvd2;
+
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
 		float Vout_Scaled = Vout_volts/v_dvd1;
 
-		uint16_t Vbat_ADC = adc_read(ADC_PIN1);
-		float Vbat_volts = Vbat_ADC*1.8/0x3FF;
-		float Vbat_Scaled = Vbat_volts/v_dvd2;
-		
 		temp = err;
 		err = V_ref-Vout_Scaled;
 		der_err = (err-temp)*1000.0/(del);
 		int_err += err*del/1000.0;
-
-		if (Vbat_Scaled<Vbat_th){
-			OCR1A = 0.0;
-			SMCR &= ~(_BV(SM2)|_BV(SM0));
-			SMCR |= _BV(SM1);
-			//Vbat_th = 2.25;
-			break;
-		}
 		
+		
+		if ((Vbat_Scaled<Vbat_th)&&((err<0.25))){
+			_delay_ms(1000);
+			OCR1A = 0.0;
+			//SMCR &= ~(_BV(SM2)|_BV(SM0));
+			//SMCR |= _BV(SM1);
+			//Vbat_th = 2.25;
+
+			return 0;
+			//goto retry;
+		}
+		Vbat_th = 1.90;
+		
+		
+
 		
 		del_ocp = err*kp;
 		del_oci = int_err*ki;
