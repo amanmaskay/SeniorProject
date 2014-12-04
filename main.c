@@ -102,7 +102,7 @@ int main ()
 	float temp = 0;
 	float del = 1;	
 	float v_dvd1 = 270/950.0;
-	float v_dvd2 = 0.511;
+	float v_dvd2 = 0.5;
 	while(1)
 	{	
 
@@ -132,7 +132,7 @@ retry:
 			return 0;
 			//goto retry;
 		}
-		Vbat_th = 1.90;
+		Vbat_th = 1.96;
 		
 		
 
