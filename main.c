@@ -24,58 +24,15 @@ int main ()
 	ADCSRA |= _BV(ADEN);
 	/**
 	 *
-	 * There are quite a number of PWM modes available but for the
-	 * sake of simplicity we'll just use the 8-bit Fast PWM mode.
-	 * This is done by setting the WGM10 and WGM12 bits.  We 
-	 * Setting COM1A1 tells the microcontroller to set the 
-	 * output of the OCR1A pin low when the timer's counter reaches
-	 * a compare value (which will be explained below).  CS10 being
-	 * set simply turns the timer on without a prescaler (so at full
-	 * speed).  The timer is used to determine when the PWM pin should be
-	 * on and when it should be off.
+	 * Setup PB1 for PWM mode.
 	 */
 	TCCR1A |= _BV(COM1A1) | _BV(WGM11) ;
 	TCCR1A &= ~_BV(WGM10) ;
 	TCCR1B |= _BV(CS10) | _BV(WGM12) | _BV(WGM13);// | _BV(WGM13);
 	int top = 0x3F;
 	ICR1 = top;
-	//TCCR1B &= ~(_BV(WGM11) | _BV(WGM10) );
-	//TCCR1A |= _BV(COM2A1) | _BV(WGM10);
-	//TCCR2B |= _BV(CS20) | _BV(WGM12);
-
-	/**
-	 *  This loop is used to change the value in the OCR1A register.
-	 *  What that means is we're telling the timer waveform generator
-	 *  the point when it should change the state of the PWM pin.
-	 *  The way we configured it (with _BV(COM1A1) above) tells the
-	 *  generator to have the pin be on when the timer is at zero and then
-	 *  to turn it off once it reaches the value in the OCR1A register.
-	 *
-	 *  Given that we are using an 8-bit mode the timer will reset to zero
-	 *  after it reaches 0xff, so we have 255 ticks of the timer until it
-	 *  resets.  The value stored in OCR1A is the point within those 255
-	 *  ticks of the timer when the output pin should be turned off
-	 *  (remember, it starts on).
-	 *
-	 *  Effectively this means that the ratio of pwm / 255 is the percentage
-	 *  of time that the pin will be high.  Given this it isn't too hard
-	 *  to see what when the pwm value is at 0x00 the LED will be off
-	 *  and when it is 0xff the LED will be at its brightest.
-	 */
-	/*uint8_t pwm = 0x00;
-	bool up = true;
-	for(;;) {
- 
-		OCR1A = pwm;
- 
-		pwm += up ? 1 : -1;
-		if (pwm == 0xff)
-			up = false;
-		else if (pwm == 0x00)
-			up = true;
- 
-		_delay_ms(10);
-	}*/
+	
+	//Initialize some variables
 	float DC = 0;
 	int OC = top*DC/100;	
 	float V_ref = 4.92;
@@ -104,41 +61,36 @@ int main ()
 	float v_dvd1 = 270/950.0;
 	float v_dvd2 = 0.5;
 	
+	// main loop
 	while(1){	
 
 	uint16_t Vbat_ADC;
-retry:
-		
+		//sample battery voltage
 		Vbat_ADC = adc_read(ADC_PIN1);
 		float Vbat_volts = Vbat_ADC*1.8/0x3FF;
 		float Vbat_Scaled = Vbat_volts/v_dvd2;
 
-		
+		//Sample Output voltage
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
 		float Vout_Scaled = Vout_volts/v_dvd1;
-
+		
+		//calculate error, its intgral and derivative
 		temp = err;
 		err = V_ref-Vout_Scaled;
 		der_err = (err-temp)*1000.0/(del);
 		int_err += err*del/1000.0;
 		
-		
+		//if battery voltage below threshold shutoff output and exit maine loop
 		if ((Vbat_Scaled<Vbat_th)&&((err<0.25))){
 			_delay_ms(1000);
 			OCR1A = 0.0;
-			//SMCR &= ~(_BV(SM2)|_BV(SM0));
-			//SMCR |= _BV(SM1);
-			//Vbat_th = 2.25;
-
 			return 0;
-			//goto retry;
+			
 		}
 		Vbat_th = 1.96;
 		
-		
-
-		
+		// calculate required duty ratio
 		del_ocp = err*kp;
 		del_oci = int_err*ki;
 		del_ocd = der_err*kd;
@@ -181,7 +133,7 @@ uint16_t adc_read(uint8_t adcx) {
 	 * a loop the loop will just go until the conversion is ready. */
 	while ( (ADCSRA & _BV(ADSC)) );
 	
-	
+	//Double sample to avoid garbage values
 	ADMUX	&=	0xf0;
 	ADMUX	|=	adcx;
  	ADCSRA |= _BV(ADSC);
