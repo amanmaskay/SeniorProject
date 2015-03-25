@@ -103,15 +103,17 @@ int main ()
 	float del = 1;	
 	float v_dvd1 = 270/950.0;
 	float v_dvd2 = 0.5;
-	while(1)
-	{	
+	
+	while(1){	
 
 	uint16_t Vbat_ADC;
 retry:
+		
 		Vbat_ADC = adc_read(ADC_PIN1);
 		float Vbat_volts = Vbat_ADC*1.8/0x3FF;
 		float Vbat_Scaled = Vbat_volts/v_dvd2;
 
+		
 		uint16_t Vout_ADC = adc_read(ADC_PIN0);
 		float Vout_volts = Vout_ADC*1.8/0x3FF;
 		float Vout_Scaled = Vout_volts/v_dvd1;
@@ -178,7 +180,12 @@ uint16_t adc_read(uint8_t adcx) {
 	 * reset (zeroed) when the conversion is ready so if we do this in
 	 * a loop the loop will just go until the conversion is ready. */
 	while ( (ADCSRA & _BV(ADSC)) );
- 
+	
+	
+	ADMUX	&=	0xf0;
+	ADMUX	|=	adcx;
+ 	ADCSRA |= _BV(ADSC);
+ 	while ( (ADCSRA & _BV(ADSC)) );
 	/* Finally, we return the converted value to the calling function. */
 	return ADC;
 }
